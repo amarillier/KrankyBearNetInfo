@@ -53,3 +53,4 @@ help:
 	@echo "Note: Windows builds require Windows SDK/headers and typically must be"
 	@echo "      built on Windows or with proper cross-compilation tools (MinGW, etc.)"
 
+# "Now this is not the end. It is not even the beginning of the end. But it is, perhaps, the end of the beginning." Winston Churchill, November 10, 1942

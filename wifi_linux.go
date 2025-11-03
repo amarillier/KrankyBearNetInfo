@@ -1,3 +1,4 @@
+//go:build linux
 // +build linux
 
 package main
@@ -13,24 +14,24 @@ import (
 
 type WiFiInformation struct {
 	InterfaceName string
-	AdapterName   string  // More descriptive adapter name
-	Description   string  // Adapter description
-	MACAddress    string  // Hardware MAC address
-	IPAddress     string  // IP address assigned to interface
+	AdapterName   string // More descriptive adapter name
+	Description   string // Adapter description
+	MACAddress    string // Hardware MAC address
+	IPAddress     string // IP address assigned to interface
 	Channel       int
 	RadioType     string
 	RadioBand     string
 	SSID          string
 	BSSID         string
-	RSSI          int      // Signal strength in dBm
-	SignalPercent int     // Signal strength as percentage (0-100)
-	TransmitRate  int     // Transmit rate in Mbps
-	ReceiveRate   int     // Receive rate in Mbps
-	LinkSpeed     int      // Link speed in Mbps (deprecated, keep for compatibility)
-	Security      string   // Security type (WPA2, WPA3, etc.)
-	ChannelWidth  string   // Channel width (20MHz, 40MHz, etc.)
-	NoiseLevel    int      // Noise level in dBm (0 if not available)
-	TransmitPower int      // Transmit power (-1 if not available)
+	RSSI          int    // Signal strength in dBm
+	SignalPercent int    // Signal strength as percentage (0-100)
+	TransmitRate  int    // Transmit rate in Mbps
+	ReceiveRate   int    // Receive rate in Mbps
+	LinkSpeed     int    // Link speed in Mbps (deprecated, keep for compatibility)
+	Security      string // Security type (WPA2, WPA3, etc.)
+	ChannelWidth  string // Channel width (20MHz, 40MHz, etc.)
+	NoiseLevel    int    // Noise level in dBm (0 if not available)
+	TransmitPower int    // Transmit power (-1 if not available)
 }
 
 // Helper function to convert RSSI to percentage (0-100)
@@ -56,10 +57,10 @@ func getInterfaceDetails(interfaceName string) (macAddress string, ipAddress str
 	if err != nil {
 		return "", ""
 	}
-	
+
 	// Get MAC address
 	macAddress = iface.HardwareAddr.String()
-	
+
 	// Get IP addresses
 	addrs, err := iface.Addrs()
 	if err == nil && len(addrs) > 0 {
@@ -72,7 +73,7 @@ func getInterfaceDetails(interfaceName string) (macAddress string, ipAddress str
 			}
 		}
 	}
-	
+
 	return macAddress, ipAddress
 }
 
@@ -125,8 +126,8 @@ func getWiFiInfoForInterface(interfaceName string) (*WiFiInformation, error) {
 		InterfaceName: interfaceName,
 		AdapterName:   interfaceName,
 		TransmitPower: -1, // Not easily available via iw
-		NoiseLevel:    0,   // May not be available
-		Security:       "Unknown",
+		NoiseLevel:    0,  // May not be available
+		Security:      "Unknown",
 	}
 
 	// Get MAC and IP addresses
@@ -155,7 +156,7 @@ func getWiFiInfoForInterface(interfaceName string) (*WiFiInformation, error) {
 	if bssidMatches := bssidRe.FindStringSubmatch(linkStr); len(bssidMatches) >= 2 {
 		info.BSSID = strings.ToLower(bssidMatches[1])
 	}
-	
+
 	// Parse RSSI (signal strength)
 	rssiRe := regexp.MustCompile(`signal:\s+(-?\d+)\s+dBm`)
 	if rssiMatches := rssiRe.FindStringSubmatch(linkStr); len(rssiMatches) >= 2 {
@@ -164,7 +165,7 @@ func getWiFiInfoForInterface(interfaceName string) (*WiFiInformation, error) {
 			info.SignalPercent = rssiToPercent(rssiVal)
 		}
 	}
-	
+
 	// Parse transmit rate (tx bitrate)
 	txSpeedRe := regexp.MustCompile(`tx bitrate:\s+(\d+(?:\.\d+)?)\s+(Mbps|Gbps)`)
 	if txSpeedMatches := txSpeedRe.FindStringSubmatch(linkStr); len(txSpeedMatches) >= 3 {
@@ -177,7 +178,7 @@ func getWiFiInfoForInterface(interfaceName string) (*WiFiInformation, error) {
 			info.LinkSpeed = speed // For backward compatibility
 		}
 	}
-	
+
 	// Parse receive rate (rx bitrate)
 	rxSpeedRe := regexp.MustCompile(`rx bitrate:\s+(\d+(?:\.\d+)?)\s+(Mbps|Gbps)`)
 	if rxSpeedMatches := rxSpeedRe.FindStringSubmatch(linkStr); len(rxSpeedMatches) >= 3 {
@@ -192,7 +193,7 @@ func getWiFiInfoForInterface(interfaceName string) (*WiFiInformation, error) {
 			}
 		}
 	}
-	
+
 	// Parse security (encryption)
 	securityRe := regexp.MustCompile(`encrypted:\s+(yes|no)`)
 	if secMatches := securityRe.FindStringSubmatch(linkStr); len(secMatches) >= 2 {
@@ -237,7 +238,7 @@ func getWiFiInfoForInterface(interfaceName string) (*WiFiInformation, error) {
 			freq2, _ := strconv.Atoi(freqMatches2[1])
 			info.Channel = frequencyToChannel(freq2)
 			info.RadioBand = getRadioBand(info.Channel)
-			
+
 			// Try to get width
 			widthRe := regexp.MustCompile(`width:\s+([\d\s]+MHz)`)
 			widthMatches := widthRe.FindStringSubmatch(infoStr)
@@ -329,3 +330,5 @@ func GetWiFiInfo() (*WiFiInformation, error) {
 	}
 	return adapters[0], nil
 }
+
+// "Now this is not the end. It is not even the beginning of the end. But it is, perhaps, the end of the beginning." Winston Churchill, November 10, 1942

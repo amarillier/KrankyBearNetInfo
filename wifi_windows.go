@@ -229,7 +229,7 @@ WiFiInfo getWiFiInfo() {
 							// ulChCenterFrequency is in kHz, convert to MHz first
 							ULONG freq = pBssEntry->ulChCenterFrequency;
 							ULONG freqMHz = freq / 1000; // Convert from kHz to MHz
-							
+
 							if (freqMHz >= 2412 && freqMHz <= 2484) {
 								// 2.4 GHz: channel = (freqMHz - 2412) / 5 + 1
 								info.channel = (int)((freqMHz - 2412) / 5 + 1);
@@ -352,10 +352,10 @@ WiFiInterfaceList getAllWiFiInterfaces() {
 
 		for (DWORD i = 0; i < pIfList->dwNumberOfItems; i++) {
 			PWLAN_INTERFACE_INFO pIfInfo = (WLAN_INTERFACE_INFO *)&pIfList->InterfaceInfo[i];
-			
+
 			// Copy GUID
 			memcpy(&list.guids[i], &pIfInfo->InterfaceGuid, sizeof(GUID));
-			
+
 			// Get GUID as string
 			WCHAR* wGuid = NULL;
 			char guidStr[256];
@@ -409,10 +409,10 @@ import (
 
 type WiFiInformation struct {
 	InterfaceName string
-	AdapterName   string  // More descriptive adapter name
-	Description   string  // Adapter description
-	MACAddress    string  // Hardware MAC address
-	IPAddress     string  // IP address assigned to interface
+	AdapterName   string // More descriptive adapter name
+	Description   string // Adapter description
+	MACAddress    string // Hardware MAC address
+	IPAddress     string // IP address assigned to interface
 	Channel       int
 	RadioType     string
 	RadioBand     string
@@ -453,13 +453,13 @@ func getInterfaceDetails(interfaceName string) (macAddress string, ipAddress str
 	if err != nil {
 		return "", ""
 	}
-	
+
 	// Try to match by name or find any WiFi interface
 	for _, iface := range interfaces {
 		// For Windows, we'll try to get MAC for all interfaces
 		// The interface name matching is complex on Windows (GUIDs vs friendly names)
 		macAddress = iface.HardwareAddr.String()
-		
+
 		addrs, err := iface.Addrs()
 		if err == nil && len(addrs) > 0 {
 			for _, addr := range addrs {
@@ -472,7 +472,7 @@ func getInterfaceDetails(interfaceName string) (macAddress string, ipAddress str
 			}
 		}
 	}
-	
+
 	return macAddress, ipAddress
 }
 
@@ -484,22 +484,22 @@ func GetAllWiFiAdapters() ([]*WiFiInformation, error) {
 		// Fallback: try to get at least one interface
 		cInfo := C.getWiFiInfo()
 		defer C.freeWiFiInfo(cInfo)
-		
+
 		if cInfo.interfaceName == nil {
 			return nil, fmt.Errorf("no WiFi interfaces found")
 		}
-		
+
 		info := convertWiFiInfo(cInfo)
-		
+
 		// Get MAC and IP addresses
 		mac, ip := getInterfaceDetails(info.InterfaceName)
 		info.MACAddress = mac
 		info.IPAddress = ip
 		info.AdapterName = info.InterfaceName // Default to interface name
-		
+
 		// Calculate signal percentage
 		info.SignalPercent = rssiToPercent(info.RSSI)
-		
+
 		return []*WiFiInformation{info}, nil
 	}
 
@@ -507,18 +507,18 @@ func GetAllWiFiAdapters() ([]*WiFiInformation, error) {
 	for i := 0; i < int(cList.count); i++ {
 		cInfo := C.getWiFiInfo()
 		defer C.freeWiFiInfo(cInfo)
-		
+
 		info := convertWiFiInfo(cInfo)
-		
+
 		// Get MAC and IP addresses
 		mac, ip := getInterfaceDetails(info.InterfaceName)
 		info.MACAddress = mac
 		info.IPAddress = ip
 		info.AdapterName = info.InterfaceName // Default to interface name
-		
+
 		// Calculate signal percentage
 		info.SignalPercent = rssiToPercent(info.RSSI)
-		
+
 		adapters = append(adapters, info)
 	}
 
@@ -586,3 +586,5 @@ func GetWiFiInfo() (*WiFiInformation, error) {
 	}
 	return adapters[0], nil
 }
+
+//"Now this is not the end. It is not even the beginning of the end. But it is, perhaps, the end of the beginning." Winston Churchill, November 10, 1942

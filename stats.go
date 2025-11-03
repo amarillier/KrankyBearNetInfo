@@ -11,15 +11,15 @@ import (
 
 // InterfaceStats represents network interface statistics
 type InterfaceStats struct {
-	Interface     string
-	BytesReceived uint64
-	BytesSent     uint64
+	Interface       string
+	BytesReceived   uint64
+	BytesSent       uint64
 	PacketsReceived uint64
-	PacketsSent   uint64
-	ErrorsReceived uint64
-	ErrorsSent    uint64
-	DropsReceived  uint64
-	DropsSent     uint64
+	PacketsSent     uint64
+	ErrorsReceived  uint64
+	ErrorsSent      uint64
+	DropsReceived   uint64
+	DropsSent       uint64
 }
 
 // GetInterfaceStats retrieves statistics for network interfaces
@@ -41,50 +41,50 @@ func getStatsLinux() ([]*InterfaceStats, error) {
 		return nil, err
 	}
 	defer file.Close()
-	
+
 	var stats []*InterfaceStats
 	scanner := bufio.NewScanner(file)
-	
+
 	// Skip header lines
 	scanner.Scan()
 	scanner.Scan()
-	
+
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 		if line == "" {
 			continue
 		}
-		
+
 		// Format: interface: bytes_recv packets_recv errs_recv drop_recv ... bytes_sent packets_sent errs_sent drop_sent ...
 		parts := strings.Split(line, ":")
 		if len(parts) < 2 {
 			continue
 		}
-		
+
 		iface := strings.TrimSpace(parts[0])
 		data := strings.Fields(parts[1])
-		
+
 		if len(data) < 16 {
 			continue
 		}
-		
+
 		stat := &InterfaceStats{Interface: iface}
-		
+
 		// Parse received stats
 		stat.BytesReceived, _ = strconv.ParseUint(data[0], 10, 64)
 		stat.PacketsReceived, _ = strconv.ParseUint(data[1], 10, 64)
 		stat.ErrorsReceived, _ = strconv.ParseUint(data[2], 10, 64)
 		stat.DropsReceived, _ = strconv.ParseUint(data[3], 10, 64)
-		
+
 		// Parse sent stats
 		stat.BytesSent, _ = strconv.ParseUint(data[8], 10, 64)
 		stat.PacketsSent, _ = strconv.ParseUint(data[9], 10, 64)
 		stat.ErrorsSent, _ = strconv.ParseUint(data[10], 10, 64)
 		stat.DropsSent, _ = strconv.ParseUint(data[11], 10, 64)
-		
+
 		stats = append(stats, stat)
 	}
-	
+
 	return stats, scanner.Err()
 }
 
@@ -95,7 +95,7 @@ func getStatsDarwin() ([]*InterfaceStats, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return parseStatsDarwin(string(output))
 }
 
@@ -103,26 +103,26 @@ func getStatsDarwin() ([]*InterfaceStats, error) {
 func parseStatsDarwin(output string) ([]*InterfaceStats, error) {
 	var stats []*InterfaceStats
 	statsMap := make(map[string]*InterfaceStats)
-	
+
 	lines := strings.Split(output, "\n")
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
 		if line == "" || strings.HasPrefix(line, "Name") {
 			continue
 		}
-		
+
 		fields := strings.Fields(line)
 		if len(fields) < 7 {
 			continue
 		}
-		
+
 		iface := fields[0]
 		if statsMap[iface] == nil {
 			statsMap[iface] = &InterfaceStats{Interface: iface}
 		}
-		
+
 		stat := statsMap[iface]
-		
+
 		// Parse based on field position
 		if strings.Contains(line, "Link") || strings.Contains(line, "Ibytes") {
 			// Interface statistics line
@@ -146,11 +146,11 @@ func parseStatsDarwin(output string) ([]*InterfaceStats, error) {
 			}
 		}
 	}
-	
+
 	for _, stat := range statsMap {
 		stats = append(stats, stat)
 	}
-	
+
 	return stats, nil
 }
 
@@ -161,7 +161,7 @@ func getStatsWindows() ([]*InterfaceStats, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return parseStatsWindows(string(output))
 }
 
@@ -169,13 +169,13 @@ func getStatsWindows() ([]*InterfaceStats, error) {
 func parseStatsWindows(output string) ([]*InterfaceStats, error) {
 	var stats []*InterfaceStats
 	lines := strings.Split(output, "\n")
-	
+
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
 		if strings.Contains(line, "Bytes") || strings.Contains(line, "Interface") {
 			continue
 		}
-		
+
 		fields := strings.Fields(line)
 		if len(fields) >= 3 {
 			stat := &InterfaceStats{
@@ -183,16 +183,17 @@ func parseStatsWindows(output string) ([]*InterfaceStats, error) {
 				BytesReceived: 0,
 				BytesSent:     0,
 			}
-			
+
 			if len(fields) >= 2 {
 				stat.BytesReceived, _ = strconv.ParseUint(fields[0], 10, 64)
 				stat.BytesSent, _ = strconv.ParseUint(fields[1], 10, 64)
 			}
-			
+
 			stats = append(stats, stat)
 		}
 	}
-	
+
 	return stats, nil
 }
 
+// "Now this is not the end. It is not even the beginning of the end. But it is, perhaps, the end of the beginning." Winston Churchill, November 10, 1942

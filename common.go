@@ -28,7 +28,7 @@ type RouteInfo struct {
 
 // DNSInfo represents DNS configuration
 type DNSInfo struct {
-	Servers      []string
+	Servers       []string
 	SearchDomains []string
 }
 
@@ -104,17 +104,17 @@ func IsActiveInterface(iface *InterfaceInfo) bool {
 	if iface.Status != "up" {
 		return false
 	}
-	
+
 	// Skip loopback interfaces
 	if iface.Name == "lo" || iface.Name == "lo0" || strings.Contains(iface.Flags, "Loopback") {
 		return false
 	}
-	
+
 	// Must have a hardware address (real network interface)
 	if iface.HardwareAddr == "" || iface.HardwareAddr == "00:00:00:00:00:00" {
 		return false
 	}
-	
+
 	// Must have a real IPv4 address (not loopback, not link-local)
 	hasRealIPv4 := false
 	for _, ip := range iface.IPv4Addrs {
@@ -122,22 +122,22 @@ func IsActiveInterface(iface *InterfaceInfo) bool {
 		if ipAddr == nil {
 			continue
 		}
-		
+
 		// Skip loopback addresses
 		if ipAddr.IsLoopback() {
 			continue
 		}
-		
+
 		// Skip link-local addresses (169.254.x.x)
 		if ipAddr.IsLinkLocalUnicast() {
 			continue
 		}
-		
+
 		// This is a real, routable IPv4 address
 		hasRealIPv4 = true
 		break
 	}
-	
+
 	// If no real IPv4, check for meaningful IPv6 (not link-local)
 	if !hasRealIPv4 {
 		for _, ip := range iface.IPv6Addrs {
@@ -145,23 +145,23 @@ func IsActiveInterface(iface *InterfaceInfo) bool {
 			if ipAddr == nil {
 				continue
 			}
-			
+
 			// Skip loopback
 			if ipAddr.IsLoopback() {
 				continue
 			}
-			
+
 			// Skip link-local (fe80::)
 			if ipAddr.IsLinkLocalUnicast() {
 				continue
 			}
-			
+
 			// Has a real IPv6 address
 			hasRealIPv4 = true
 			break
 		}
 	}
-	
+
 	return hasRealIPv4
 }
 
@@ -181,7 +181,7 @@ func FilterInterfaces(interfaces []*InterfaceInfo, nameFilter string, upOnly, do
 		if downOnly && iface.Status != "down" {
 			continue
 		}
-		
+
 		// Filter for active interfaces (primary interfaces with real IP configs)
 		if activeOnly && !IsActiveInterface(iface) {
 			continue
@@ -196,46 +196,46 @@ func FilterInterfaces(interfaces []*InterfaceInfo, nameFilter string, upOnly, do
 // This is a heuristic based on interface name patterns and flags
 func IsVPNInterface(ifaceName string, flags string) bool {
 	ifaceLower := strings.ToLower(ifaceName)
-	
+
 	// Common VPN interface patterns
 	vpnPatterns := []string{"tun", "tap", "ppp", "wg", "utun", "ipsec", "vpn", "pptp", "l2tp", "openvpn", "wireguard"}
-	
+
 	// Check name patterns
 	for _, pattern := range vpnPatterns {
 		if strings.Contains(ifaceLower, pattern) {
 			return true
 		}
 	}
-	
+
 	// Check for Point-to-Point flag (common in VPNs)
 	if strings.Contains(flags, "PointToPoint") || strings.Contains(flags, "point-to-point") {
 		return true
 	}
-	
+
 	return false
 }
 
 // IsWirelessInterface determines if an interface is likely a wireless interface
 func IsWirelessInterface(ifaceName string) bool {
 	ifaceLower := strings.ToLower(ifaceName)
-	
+
 	// Common wireless interface patterns
 	wifiPatterns := []string{"wlan", "wifi", "wlp", "wl", "airport"}
-	
+
 	// Check name patterns
 	for _, pattern := range wifiPatterns {
 		if strings.Contains(ifaceLower, pattern) {
 			return true
 		}
 	}
-	
+
 	// For macOS, en0 is usually WiFi on MacBooks
 	// We'll check this more carefully - en0 could be either, but we'll use other heuristics
 	if ifaceLower == "en0" {
 		// Could be WiFi or wired - we'll need to check elsewhere
 		return false // Let other logic determine
 	}
-	
+
 	return false
 }
 
@@ -243,17 +243,17 @@ func IsWirelessInterface(ifaceName string) bool {
 // This is a heuristic based on interface name patterns
 func IsWiredInterface(ifaceName string) bool {
 	ifaceLower := strings.ToLower(ifaceName)
-	
+
 	// Common wired interface patterns (excluding WiFi)
 	wiredPatterns := []string{"eth", "enp", "ens", "em", "usb", "ethernet", "local area connection"}
-	
+
 	// Check for wired patterns
 	for _, pattern := range wiredPatterns {
 		if strings.Contains(ifaceLower, pattern) {
 			return true
 		}
 	}
-	
+
 	// For macOS, en1, en2, en3, en4, en5+ are usually wired (Thunderbolt, USB Ethernet, etc.)
 	// en0 is ambiguous (could be WiFi or wired depending on Mac model)
 	if strings.HasPrefix(ifaceLower, "en") && len(ifaceLower) > 2 {
@@ -262,7 +262,7 @@ func IsWiredInterface(ifaceName string) bool {
 			return true
 		}
 	}
-	
+
 	return false
 }
 
@@ -270,17 +270,17 @@ func IsWiredInterface(ifaceName string) bool {
 func GetInterfaceType(iface *InterfaceInfo) string {
 	name := iface.Name
 	flags := iface.Flags
-	
+
 	// Check for loopback first
 	if name == "lo" || name == "lo0" || strings.Contains(flags, "Loopback") {
 		return "loopback"
 	}
-	
+
 	// Check for VPN
 	if IsVPNInterface(name, flags) {
 		return "vpn"
 	}
-	
+
 	// Check if this interface is in the WiFi adapters list (most accurate)
 	// This helps identify WiFi interfaces that might not match name patterns
 	wifiAdapters, err := GetAllWiFiAdapters()
@@ -291,12 +291,12 @@ func GetInterfaceType(iface *InterfaceInfo) string {
 			}
 		}
 	}
-	
+
 	// Check for wireless (WiFi) by name patterns
 	if IsWirelessInterface(name) {
 		return "wireless"
 	}
-	
+
 	// Special case for macOS en0 - check WiFi adapters first, then fallback
 	if name == "en0" {
 		// If we found it in WiFi adapters, it's wireless
@@ -314,12 +314,12 @@ func GetInterfaceType(iface *InterfaceInfo) string {
 		// Default to wireless for en0 if not found elsewhere
 		return "wireless"
 	}
-	
+
 	// Check for wired
 	if IsWiredInterface(name) {
 		return "wired"
 	}
-	
+
 	return "other"
 }
 
@@ -329,7 +329,7 @@ func GetWiredInterfaces() ([]*WiredInterfaceInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	var wired []*WiredInterfaceInfo
 	for _, iface := range interfaces {
 		if IsWiredInterface(iface.Name) && iface.HardwareAddr != "" {
@@ -340,18 +340,19 @@ func GetWiredInterfaces() ([]*WiredInterfaceInfo, error) {
 				Status:        iface.Status,
 				MTU:           iface.MTU,
 			}
-			
+
 			if len(iface.IPv4Addrs) > 0 {
 				wiredInfo.IPAddress = iface.IPv4Addrs[0]
 			}
 			if len(iface.IPv6Addrs) > 0 {
 				wiredInfo.IPv6Address = iface.IPv6Addrs[0]
 			}
-			
+
 			wired = append(wired, wiredInfo)
 		}
 	}
-	
+
 	return wired, nil
 }
 
+// "Now this is not the end. It is not even the beginning of the end. But it is, perhaps, the end of the beginning." Winston Churchill, November 10, 1942

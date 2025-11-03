@@ -400,3 +400,5 @@ This script will:
 - For network connections, `ss` is preferred (from `iproute2` package), but `netstat` (from `net-tools`) works as fallback
 - Some distributions may require additional permissions or kernel modules for WiFi information
 - Network statistics read from `/proc/net/dev`, which is available on all Linux systems
+
+## "Now this is not the end. It is not even the beginning of the end. But it is, perhaps, the end of the beginning." Winston Churchill, November 10, 1942
