@@ -42,7 +42,7 @@ $output = "bin\netinfo-$Arch.exe"
 
 Write-ColorOutput Green "Building Windows $Arch binary..."
 Write-Output "  Output: $output"
-Write-Output "  Flags: $ldflags"
+Write-Output "  Flags: $ldflags -trimpath"
 Write-Output ""
 
 $env:CGO_ENABLED = "1"

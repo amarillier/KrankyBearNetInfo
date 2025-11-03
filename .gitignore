@@ -38,6 +38,7 @@ dist/
 build/
 Inno/*
 sync2windows.sh
+sync2ubuntu18.sh
 # ALLOWED
 bin/*
 # Not allowed for now
