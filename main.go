@@ -1,18 +1,23 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"os/exec"
 	"runtime"
 	"strconv"
 	"strings"
 	"time"
+
+	updatechecker "github.com/amarillier/go-update-checker"
 )
 
 var appName = "KrankyBear NetInfo"
-var appVersion = "0.1.0"
+var appVersion = "0.1.1"
 var appCopyright = "Copyright (c) Allan Marillier, 2025-" + strconv.Itoa(time.Now().Year())
 
 func showMainHelp() {
@@ -30,6 +35,8 @@ func showMainHelp() {
 	fmt.Println("  trace             Traceroute to a host (network diagnostics)")
 	fmt.Println("  wifi              Show WiFi adapter information")
 	fmt.Println("  wired             Show wired (Ethernet) interface information")
+	fmt.Println("\nGlobal Options:")
+	fmt.Println("  -checkupdate, -cu  Check for available updates")
 	fmt.Println("\nFor detailed help on any command, including all options and examples:")
 	fmt.Println("  netinfo <command> -help")
 }
@@ -988,7 +995,68 @@ func handleTraceCommand(args []string) {
 	}
 }
 
+// getLatestReleaseVersion fetches the latest release version from GitHub
+func getLatestReleaseVersion(owner, repo string) string {
+	client := http.Client{
+		Timeout: 5 * time.Second,
+	}
+
+	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/releases/latest", owner, repo)
+	resp, err := client.Get(url)
+	if err != nil {
+		return "unknown"
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "unknown"
+	}
+
+	var apiResponse struct {
+		TagName string `json:"tag_name"`
+	}
+	if err := json.Unmarshal(body, &apiResponse); err != nil {
+		return "unknown"
+	}
+
+	return apiResponse.TagName
+}
+
+// checkUpdate checks for available updates using the update checker module
+func checkUpdate() {
+	// TODO: Update these values with your actual GitHub repository information
+	owner := "amarillier"       // GitHub username/organization
+	repo := "KrankyBearNetInfo" // Repository name
+	software := appName
+	downloadLink := ""   // Empty string will default to GitHub releases page
+	minDaysInterval := 0 // Check every time (0 = always check)
+	verbose := false     // Set to true for debug output
+
+	// Get latest release version for display
+	latestVersion := getLatestReleaseVersion(owner, repo)
+
+	checker := updatechecker.New(owner, repo, software, downloadLink, minDaysInterval, verbose)
+	checker.CheckForUpdate(appVersion)
+
+	fmt.Printf("Current version: %s\n", appVersion)
+	if latestVersion != "unknown" {
+		fmt.Printf("Latest release version: %s\n\n", latestVersion)
+	} else {
+		fmt.Println()
+	}
+	checker.PrintMessage()
+}
+
 func main() {
+	// Check for update check flags first (before subcommand parsing)
+	if len(os.Args) >= 2 {
+		if os.Args[1] == "-checkupdate" || os.Args[1] == "-cu" {
+			checkUpdate()
+			return
+		}
+	}
+
 	// Check if we have a subcommand
 	if len(os.Args) < 2 {
 		// Default to showing main help if no command provided

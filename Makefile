@@ -1,16 +1,16 @@
-.PHONY: build all clean darwin windows linux test help
+.PHONY: build all clean macos windows linux test help
 
 # Default target (skip windows if cross-compilation not available)
-all: darwin linux windows-optional
+all: macos linux windows-optional
 
 # Build for current platform
 build:
 	go build -o netinfo
 
-# Build for macOS (darwin)
-darwin:
-	CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -ldflags="-w -s" -trimpath -o bin/netinfo-darwin-amd64
-	CGO_ENABLED=1 GOOS=darwin GOARCH=arm64 go build -ldflags="-w -s" -trimpath -o bin/netinfo-darwin-arm64
+# Build for macos
+macos:
+	CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -ldflags="-w -s" -trimpath -o bin/netinfo-macos-amd64
+	CGO_ENABLED=1 GOOS=darwin GOARCH=arm64 go build -ldflags="-w -s" -trimpath -o bin/netinfo-macos-arm64
 
 # Build for Windows (requires Windows SDK/headers - only works on Windows or with cross-compilation tools)
 windows:
@@ -42,7 +42,7 @@ test:
 help:
 	@echo "Available targets:"
 	@echo "  make build      - Build for current platform"
-	@echo "  make darwin     - Build for macOS (amd64 and arm64)"
+	@echo "  make macos     - Build for MacOS (amd64 and arm64)"
 	@echo "  make linux      - Build for Linux (amd64, arm64, and 386)"
 	@echo "  make windows    - Build for Windows (amd64 and 386) - requires Windows SDK"
 	@echo "  make all        - Build for all available platforms (Windows optional)"

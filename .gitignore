@@ -40,8 +40,8 @@ Inno/*
 sync2windows.sh
 sync2ubuntu18.sh
 # ALLOWED
-bin/*
-# Not allowed for now
+!bin/*
+# Not allowed or needed for now
 Resources/*
 Inno/*.iss
 Inno/*.ico
