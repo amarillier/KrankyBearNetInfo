@@ -38,7 +38,7 @@ if (-not (Test-Path "bin")) {
 
 # Build flags for optimization
 $ldflags = "-w -s"
-$output = "bin\netinfo-$Arch.exe"
+$output = "bin\netinfo-windows-$Arch.exe"
 
 Write-ColorOutput Green "Building Windows $Arch binary..."
 Write-Output "  Output: $output"

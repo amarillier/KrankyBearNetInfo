@@ -5,7 +5,7 @@ all: macos linux windows-optional
 
 # Build for current platform
 build:
-	go build -o netinfo
+	go build -o netinfo -ldflags="-w -s" -trimpath
 
 # Build for macos
 macos:

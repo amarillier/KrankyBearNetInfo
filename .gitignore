@@ -37,10 +37,16 @@ netinfo
 dist/
 build/
 Inno/*
+compile-all.sh
+compile-windows-ssh.sh
+compile-windows.bat
+compile-windows.sh
 sync2windows.sh
 sync2ubuntu18.sh
+
 # ALLOWED
 !bin/*
+!installers/*
 # Not allowed or needed for now
 Resources/*
 Inno/*.iss

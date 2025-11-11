@@ -17,7 +17,7 @@ import (
 )
 
 var appName = "KrankyBear NetInfo"
-var appVersion = "0.1.1"
+var appVersion = "0.1.2"
 var appCopyright = "Copyright (c) Allan Marillier, 2025-" + strconv.Itoa(time.Now().Year())
 
 func showMainHelp() {
